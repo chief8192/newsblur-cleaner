@@ -38,6 +38,13 @@ import traceback
 import urllib.parse
 
 
+def WordForSize(items_or_count, singular, plural):
+    item_count = (
+        len(items_or_count) if hasattr(items_or_count, "__len__") else items_or_count
+    )
+    return singular if item_count == 1 else plural
+
+
 class NewsBlurClient(object):
     def __init__(self, username, password):
         self.username = username
@@ -212,11 +219,12 @@ def main():
 
         # Load all the feeds
         feeds = [f for f in client.GetFeeds() if f.unread_count > 0]
-        print(f"Retrieved {len(feeds)} feed(s) with unread stories")
+        word = WordForSize(feeds, "feed", "feeds")
+        print(f"Retrieved {len(feeds)} {word} with unread stories")
 
         titles_seen = set()
         permalinks_seen = set()
-        to_purge = []
+        all_stories_to_mark = []
 
         # Calculate the cutoff date if needed.
         cutoff = None
@@ -231,18 +239,20 @@ def main():
 
             print(f"Processing {feed.title}")
 
-            stories = []
+            feed_stories = []
+            feed_stories_to_mark = []
             page = 1
 
-            # Load stories from the feed page by page
-            print(f"  Loading {feed.unread_count} stories")
-            while len(stories) < feed.unread_count:
+            # Load stories from the feed page by page.
+            word = WordForSize(feed.unread_count, "story", "stories")
+            print(f"  Examining {feed.unread_count} {word}")
+            while len(feed_stories) < feed.unread_count:
                 new_stories = feed.GetStories(page=page, oldest_first=False)
-                stories.extend(new_stories)
+                feed_stories.extend(new_stories)
                 page += 1
 
             # Check each story to see if it should be purged
-            for story_num, story in enumerate(stories):
+            for story_num, story in enumerate(feed_stories):
 
                 # Deduplicate, if specified by argument.
                 if ctx.deduplicate:
@@ -250,12 +260,12 @@ def main():
                     # Purge if the exact title as already been seen.
                     norm_title = story.NormalizeTitle()
                     if norm_title in titles_seen:
-                        to_purge.append(story)
+                        feed_stories_to_mark.append(story)
                         continue
 
                     # Purge if the exact permalink has already been seen.
                     if story.permalink in permalinks_seen:
-                        to_purge.append(story)
+                        feed_stories_to_mark.append(story)
                         continue
 
                 # Purge if the story is earlier than the timestamp cutoff
@@ -265,7 +275,7 @@ def main():
                     and ctx.max_days_old > 0
                     and story.timestamp < cutoff
                 ):
-                    to_purge.append(story)
+                    feed_stories_to_mark.append(story)
                     continue
 
                 # Purge if there's a max story limit specified by argument, and
@@ -275,13 +285,13 @@ def main():
                     and ctx.max_stories_per_feed > 0
                     and story_num >= ctx.max_stories_per_feed
                 ):
-                    to_purge.append(story)
+                    feed_stories_to_mark.append(story)
                     continue
 
                 # Purge any stories which don't match the specified languages,
                 # if any.
                 if languages and not story.GetLanguage() in languages:
-                    to_purge.append(story)
+                    feed_stories_to_mark.append(story)
                     continue
 
                 # Keeping the story, so note that it's been seen.
@@ -289,11 +299,17 @@ def main():
                     titles_seen.add(norm_title)
                     permalinks_seen.add(story.permalink)
 
+            # Print the per-feed results.
+            if feed_stories_to_mark:
+                word = WordForSize(all_stories_to_mark, "story", "stories")
+                print(f"  Found {len(feed_stories_to_mark)} {word} to mark as read")
+                all_stories_to_mark.extend(feed_stories_to_mark)
+
         # Mark stories as read, if needed.
-        if to_purge:
-            word = "story" if len(to_purge) == 1 else "stories"
-            print(f"Marking {len(to_purge)} {word} as read")
-            client.MarkStoriesAsRead(to_purge)
+        if all_stories_to_mark:
+            word = WordForSize(all_stories_to_mark, "story", "stories")
+            print(f"Marking {len(all_stories_to_mark)} {word} as read")
+            client.MarkStoriesAsRead(all_stories_to_mark)
         else:
             print(f"No stories to be marked as read")
 
