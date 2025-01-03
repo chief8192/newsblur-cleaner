@@ -219,7 +219,8 @@ def main():
     ctx = parser.parse_args()
 
     # Disable --language if run on Pythonista, due to lack of langdetect.
-    if "langdetect" not in sys.modules:
+    if ctx.language and "langdetect" not in sys.modules:
+        print("--language not supported on Pythonista")
         ctx.language = []
 
     # Login to NewsBlur, and perform any of the specified cleanups.
