@@ -173,18 +173,17 @@ class Story(object):
         return not self.story_data.get("read_status", 0)
 
     @property
-    def date(self):
-        story_date = self.story_data.get("story_date", None)
-        if story_date:
-            story_date = datetime.datetime.strptime(story_date, "%Y-%m-%d %H:%M:%S")
-        return story_date if story_date else datetime.datetime.utcnow()
-
-    @property
     def timestamp(self):
         story_timestamp = self.story_data.get("story_timestamp", None)
         if story_timestamp:
-            story_timestamp = datetime.datetime.fromtimestamp(float(story_timestamp))
-        return story_timestamp if story_timestamp else datetime.datetime.utcnow()
+            story_timestamp = datetime.datetime.fromtimestamp(
+                float(story_timestamp), tz=datetime.timezone.utc
+            )
+        return (
+            story_timestamp
+            if story_timestamp
+            else datetime.datetime.now(datetime.timezone.utc)
+        )
 
     def NormalizeTitle(self):
         norm_title = self.title.lower()
