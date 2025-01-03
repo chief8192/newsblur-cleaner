@@ -1,0 +1,10 @@
+# requests requirements
+requests==2.32.3
+idna==3.10
+urllib3==2.2.3
+charset-normalizer==3.4.0
+certifi==2024.12.14
+
+# langdetect requirements
+langdetect==1.0.9
+six==1.17.0
