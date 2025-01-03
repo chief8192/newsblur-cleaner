@@ -311,6 +311,8 @@ def main():
             client.MarkStoriesAsRead(all_stories_to_mark)
         else:
             print(f"No stories to be marked as read")
+            
+        print("Done") 
 
 
 if __name__ == "__main__":
