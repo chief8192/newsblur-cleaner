@@ -211,7 +211,6 @@ def main():
     parser.add_argument("--max_days_old", dest="max_days_old", type=int)
     parser.add_argument("--max_stories_per_feed", dest="max_stories_per_feed", type=int)
     parser.add_argument("--language", dest="language", action="append", type=str)
-    parser.add_argument("--pushover_key", dest="pushover_key", type=str)
     ctx = parser.parse_args()
 
     # Login to NewsBlur, and perform any of the specified cleanups.
