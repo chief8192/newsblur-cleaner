@@ -27,7 +27,6 @@ import argparse
 import datetime
 import http.client
 import itertools
-import langdetect
 import logging
 import platform
 import requests
@@ -36,6 +35,12 @@ import sys
 import time
 import traceback
 import urllib.parse
+
+# Not supported on Pythonista.
+try:
+    import langdetect
+except ModuleNotFoundError as e:
+    print(str(e))
 
 
 def WordForSize(items_or_count, singular, plural):
@@ -213,6 +218,10 @@ def main():
     parser.add_argument("--language", dest="language", action="append", type=str)
     ctx = parser.parse_args()
 
+    # Disable --language if run on Pythonista, due to lack of langdetect.
+    if "langdetect" not in sys.modules:
+        ctx.language = []
+
     # Login to NewsBlur, and perform any of the specified cleanups.
     with NewsBlurClient(ctx.username, ctx.password) as client:
 
@@ -311,8 +320,8 @@ def main():
             client.MarkStoriesAsRead(all_stories_to_mark)
         else:
             print(f"No stories to be marked as read")
-            
-        print("Done") 
+
+        print("Done")
 
 
 if __name__ == "__main__":
