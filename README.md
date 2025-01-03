@@ -28,3 +28,10 @@ $ bazel run :newsblur_cleaner \
     --password=<PASSWORD> \
     <optional_arguments>
 ```
+
+### Using Pythonista
+
+`newsblur_cleaner.py` can be run within
+[Pythonista](https://omz-software.com/pythonista/), with the exception of the
+`--language` flag, due to lack of
+[`langdetect`](https://pypi.org/project/langdetect/) support.
