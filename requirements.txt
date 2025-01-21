@@ -8,3 +8,5 @@ certifi==2024.12.14
 # langdetect requirements
 langdetect==1.0.9
 six==1.17.0
+
+pushoverutil==1.0.0

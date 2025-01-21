@@ -39,6 +39,7 @@ import urllib.parse
 # Not supported on Pythonista.
 try:
     import langdetect
+    import pushoverutil
 except ModuleNotFoundError as e:
     print(str(e))
 
@@ -48,6 +49,10 @@ def WordForSize(items_or_count, singular, plural):
         len(items_or_count) if hasattr(items_or_count, "__len__") else items_or_count
     )
     return singular if item_count == 1 else plural
+
+
+def IsModuleImported(module_name):
+    return module_name in sys.modules
 
 
 class NewsBlurClient(object):
@@ -203,7 +208,11 @@ class Story(object):
         return norm_title
 
     def GetLanguage(self):
-        return langdetect.detect(self.title)
+        return (
+            langdetect.detect(self.title)
+            if IsModuleImported("langdetect")
+            else "unknown"
+        )
 
 
 def main():
@@ -216,10 +225,12 @@ def main():
     parser.add_argument("--max_days_old", dest="max_days_old", type=int)
     parser.add_argument("--max_stories_per_feed", dest="max_stories_per_feed", type=int)
     parser.add_argument("--language", dest="language", action="append", type=str)
+    parser.add_argument("--pushover_app_token", dest="pushover_app_token", type=str)
+    parser.add_argument("--pushover_user_key", dest="pushover_user_key", type=str)
     ctx = parser.parse_args()
 
-    # Disable --language if run on Pythonista, due to lack of langdetect.
-    if ctx.language and "langdetect" not in sys.modules:
+    # Disable langdetect if run on Pythonista.
+    if ctx.language and not IsModuleImported("langdetect"):
         print("--language not supported on Pythonista")
         ctx.language = []
 
@@ -316,9 +327,17 @@ def main():
 
         # Mark stories as read, if needed.
         if all_stories_to_mark:
-            word = WordForSize(all_stories_to_mark, "story", "stories")
-            print(f"Marking {len(all_stories_to_mark)} {word} as read")
             client.MarkStoriesAsRead(all_stories_to_mark)
+
+            word = WordForSize(all_stories_to_mark, "story", "stories")
+            message = f"Marked {len(all_stories_to_mark)} {word} as read"
+            print(message)
+
+            # Notify via Pushover if possible.
+            if IsModuleImported("pushoverutil"):
+                pushoverutil.Push(
+                    ctx.pushover_user_key, ctx.pushover_app_token, message
+                )
         else:
             print(f"No stories to be marked as read")
 
