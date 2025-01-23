@@ -336,7 +336,10 @@ def main():
             # Notify via Pushover if possible.
             if IsModuleImported("pushoverutil"):
                 pushoverutil.Push(
-                    ctx.pushover_user_key, ctx.pushover_app_token, message
+                    ctx.pushover_user_key,
+                    ctx.pushover_app_token,
+                    message,
+                    title="NewsBlur",
                 )
         else:
             print(f"No stories to be marked as read")
