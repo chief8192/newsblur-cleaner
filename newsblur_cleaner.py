@@ -222,11 +222,11 @@ def main():
     parser.add_argument("--username", dest="username", required=True, type=str)
     parser.add_argument("--password", dest="password", required=True, type=str)
     parser.add_argument("--deduplicate", dest="deduplicate", action="store_true")
-    parser.add_argument("--max_days_old", dest="max_days_old", type=int)
-    parser.add_argument("--max_stories_per_feed", dest="max_stories_per_feed", type=int)
+    parser.add_argument("--max-days-old", dest="max_days_old", type=int)
+    parser.add_argument("--max-stories-per-feed", dest="max_stories_per_feed", type=int)
     parser.add_argument("--language", dest="language", action="append", type=str)
-    parser.add_argument("--pushover_app_token", dest="pushover_app_token", type=str)
-    parser.add_argument("--pushover_user_key", dest="pushover_user_key", type=str)
+    parser.add_argument("--pushover-app-token", dest="pushover_app_token", type=str)
+    parser.add_argument("--pushover-user-key", dest="pushover_user_key", type=str)
     ctx = parser.parse_args()
 
     # Disable langdetect if run on Pythonista.
